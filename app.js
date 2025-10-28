@@ -94,7 +94,7 @@ async function checkSession() {
     }
 
     try {
-        const response = await fetch(`api.php?action=verifySession&sessionToken=${encodeURIComponent(sessionToken)}`);
+        const response = await fetch(`api/api.php?action=verifySession&sessionToken=${encodeURIComponent(sessionToken)}`);
         const result = await response.json();
 
         if (result.success) {
@@ -137,7 +137,7 @@ async function handleRegister(e) {
     }
 
     try {
-        const response = await fetch('api.php', {
+        const response = await fetch('api/api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -185,7 +185,7 @@ async function handleLogin(e) {
     }
 
     try {
-        const response = await fetch('api.php', {
+        const response = await fetch('api/api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -225,7 +225,7 @@ async function handleLogout() {
     }
 
     try {
-        await fetch('api.php', {
+        await fetch('api/api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -284,7 +284,7 @@ function showMainApp() {
 // Load transactions from backend
 async function loadTransactions() {
     try {
-        const response = await fetch(`api.php?action=getTransactions&sessionToken=${encodeURIComponent(userData.sessionToken)}`);
+        const response = await fetch(`api/api.php?action=getTransactions&sessionToken=${encodeURIComponent(userData.sessionToken)}`);
         const result = await response.json();
 
         if (result.success) {
@@ -325,7 +325,7 @@ async function handleAddIncome(e) {
     };
 
     try {
-        const response = await fetch('api.php', {
+        const response = await fetch('api/api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -380,7 +380,7 @@ async function handleAddExpense(e) {
     };
 
     try {
-        const response = await fetch('api.php', {
+        const response = await fetch('api/api.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
