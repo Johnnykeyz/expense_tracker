@@ -22,67 +22,7 @@ function getDBConnection() {
     return $conn;
 }
 
-// Initialize database
-function initDatabase() {
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS);
-    
-    if ($conn->connect_error) {
-        return ['success' => false, 'message' => 'Connection failed'];
-    }
-    
-    $sql = "CREATE DATABASE IF NOT EXISTS " . DB_NAME;
-    $conn->query($sql);
-    
-    $conn->select_db(DB_NAME);
-    
-    // Create users table
-    $sql = "CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(50) NOT NULL UNIQUE,
-        email VARCHAR(255) NOT NULL UNIQUE,
-        phone VARCHAR(20) NOT NULL,
-        full_name VARCHAR(255) NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        balance DECIMAL(10, 2) DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP NULL,
-        is_active BOOLEAN DEFAULT TRUE,
-        INDEX idx_username (username),
-        INDEX idx_email (email)
-    )";
-    $conn->query($sql);
-    
-    // Create transactions table
-    $sql = "CREATE TABLE IF NOT EXISTS transactions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        type ENUM('income', 'expense') NOT NULL,
-        category VARCHAR(100) NOT NULL,
-        description TEXT,
-        amount DECIMAL(10, 2) NOT NULL,
-        transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        INDEX idx_user_date (user_id, transaction_date)
-    )";
-    $conn->query($sql);
-    
-    // Create sessions table
-    $sql = "CREATE TABLE IF NOT EXISTS sessions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        session_token VARCHAR(255) NOT NULL UNIQUE,
-        expires_at TIMESTAMP NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        INDEX idx_token (session_token),
-        INDEX idx_user (user_id)
-    )";
-    $conn->query($sql);
-    
-    $conn->close();
-    
-    return ['success' => true, 'message' => 'Database initialized'];
-}
+
 
 // Register new user
 function registerUser($data) {
@@ -438,11 +378,7 @@ if ($requestMethod == 'POST') {
         exit;
     }
     
-    switch ($input['action']) {
-        case 'init':
-            echo json_encode(initDatabase());
-            break;
-            
+    switch ($input['action']) {      
         case 'register':
             echo json_encode(registerUser($input));
             break;
