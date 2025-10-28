@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Credentials: true');
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
 // Database configuration
@@ -11,13 +11,18 @@ define('DB_USER', getenv('DB_USER'));
 define('DB_PASS', getenv('DB_PASS'));
 define('DB_NAME', getenv('DB_NAME'));
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 // Create connection
 function getDBConnection() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    
+   
     if ($conn->connect_error) {
-        return null;
-    }
+    return ['success' => false, 'message' => 'DB Error: ' . $conn->connect_error];
+}
     
     return $conn;
 }
