@@ -372,12 +372,31 @@ function deleteTransaction($transactionId, $sessionToken) {
     return ['success' => false, 'message' => 'Failed to delete transaction'];
 }
 
+// Enable CORS for Vercel deployment
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+}
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
+        header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+    }
+    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
+        header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
+    }
+    exit(0);
+}
+
 // Main request handler
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 if ($requestMethod == 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    
+    // Handle both JSON and multipart form data
+    $input = $_POST;
+    if (empty($_POST) && $_SERVER["CONTENT_TYPE"] !== "multipart/form-data") {
+        $input = json_decode(file_get_contents('php://input'), true);
+    }
     if (!isset($input['action'])) {
         echo json_encode(['success' => false, 'message' => 'Action not specified']);
         exit;
@@ -403,6 +422,20 @@ if ($requestMethod == 'POST') {
         case 'deleteTransaction':
             echo json_encode(deleteTransaction($input['transactionId'], $input['sessionToken']));
             break;
+
+        case 'processReceipt':
+            $sessionCheck = verifySession($input['sessionToken']);
+            if (!$sessionCheck['success']) {
+                echo json_encode($sessionCheck);
+                break;
+            }
+            require_once 'predictive.php';
+            if (!isset($_FILES['receipt'])) {
+                echo json_encode(['success' => false, 'message' => 'No receipt file uploaded']);
+                break;
+            }
+            echo json_encode(handleOCRReceipt($_FILES['receipt'], $sessionCheck['user']['id']));
+            break;
             
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
@@ -421,6 +454,35 @@ if ($requestMethod == 'POST') {
             
         case 'getTransactions':
             echo json_encode(getTransactions($_GET['sessionToken']));
+            break;
+
+        case 'getPredictions':
+            $sessionCheck = verifySession($_GET['sessionToken']);
+            if (!$sessionCheck['success']) {
+                echo json_encode($sessionCheck);
+                break;
+            }
+            require_once 'predictive.php';
+            $predictions = analyzeTrends($sessionCheck['user']['id']);
+            $recommendations = generateRecommendations($sessionCheck['user']['id']);
+            echo json_encode([
+                'success' => true,
+                'predictions' => $predictions['predictions'],
+                'recommendations' => $recommendations['recommendations']
+            ]);
+            break;
+
+        case 'getNearbyVendors':
+            $sessionCheck = verifySession($_GET['sessionToken']);
+            if (!$sessionCheck['success']) {
+                echo json_encode($sessionCheck);
+                break;
+            }
+            require_once 'predictive.php';
+            $latitude = floatval($_GET['latitude']);
+            $longitude = floatval($_GET['longitude']);
+            $category = $_GET['category'] ?? null;
+            echo json_encode(findNearbyVendors($latitude, $longitude, $category));
             break;
             
         default:
