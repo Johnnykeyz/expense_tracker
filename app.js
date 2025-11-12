@@ -757,3 +757,30 @@ function hideMessages() {
     document.getElementById('authError').classList.remove('show');
     document.getElementById('authSuccess').classList.remove('show');
 }
+
+
+// Add this code to your app.js file after the initEventListeners() function
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    
+    // Only handle this on mobile (when sidebar has mobile-visible class)
+    if (sidebar.classList.contains('mobile-visible')) {
+        // Check if click is outside sidebar and not on the menu toggle button
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+            sidebar.classList.remove('mobile-visible');
+        }
+    }
+});
+
+// Optional: Close sidebar when pressing Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('mobile-visible')) {
+            sidebar.classList.remove('mobile-visible');
+        }
+    }
+});
